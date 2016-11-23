@@ -1,3 +1,4 @@
+#include <avr/sleep.h>
 void sendControlChange(byte channel, byte ctrl, byte value);
 void sendProgramChange(byte channel, byte value);
 void allumerRouge();
@@ -43,6 +44,9 @@ void setup() {
    // On autorise l'utilisation des LEDs sur la carte MIDI
    pinMode(6,OUTPUT); // Rouge
    pinMode(7,OUTPUT); // Verte
+
+   pinMode(13,OUTPUT); // LED de l'arduino
+   digitalWrite(13,HIGH);
 }
 
 void allumerRouge() {
@@ -60,8 +64,26 @@ void eteindreVert() {
 
 // Lit le prochain octet en entrée
 byte readNext() {
+   byte count = 255;
+
    // on attend qu'un octet soit disponible
-   while (!Serial.available());
+   while (!Serial.available()) {
+      // au bout de "count" tours, on met l'arduino en veille en attente d'une
+      // interruption (la réception d'une donnée sur le port série en déclenche
+      // une).
+      if (count == 0) {
+         set_sleep_mode(SLEEP_MODE_IDLE);
+         sleep_enable();
+         digitalWrite(13,LOW);
+         sleep_mode();
+         sleep_disable();
+         digitalWrite(13,HIGH);
+         count = 255;
+      }
+      else {
+         count -= 1;
+      }
+   }
 
    // on le lit et on le renvoie
    return Serial.read();
