@@ -1,5 +1,9 @@
 void sendControlChange(byte channel, byte ctrl, byte value);
 void sendProgramChange(byte channel, byte value);
+void allumerRouge();
+void eteindreRouge();
+void allumerVert();
+void eteindreVert();
 
 
 /* Que faire lorsqu'on reçoit un Control Change?
@@ -35,8 +39,24 @@ int onProgramChange(byte channel, byte value) {
 void setup() {
    // Le protocol midi fonctionne à 31250 bits par seconde
    Serial.begin(31250);
+
+   // On autorise l'utilisation des LEDs sur la carte MIDI
+   pinMode(6,OUTPUT); // Rouge
+   pinMode(7,OUTPUT); // Verte
 }
 
+void allumerRouge() {
+   digitalWrite(6,HIGH);
+}
+void eteindreRouge() {
+   digitalWrite(6,LOW);
+}
+void allumerVert() {
+   digitalWrite(7,HIGH);
+}
+void eteindreVert() {
+   digitalWrite(7,LOW);
+}
 
 // Lit le prochain octet en entrée
 byte readNext() {
