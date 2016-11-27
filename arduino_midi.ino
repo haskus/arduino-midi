@@ -10,6 +10,8 @@ void eteindreVert();
 /* Que faire lorsqu'on reçoit un Control Change?
  *
  * Pour le transmettre tel quel, renvoyer 1. Sinon renvoyer 0.
+ * 
+ * Channel = [1..16]
  */
 int onControlChange(byte channel, byte ctrl, byte value) {
    // if (channel == 5 && ctrl == 10) {
@@ -23,6 +25,8 @@ int onControlChange(byte channel, byte ctrl, byte value) {
 /* Que faire lorsqu'on reçoit un Program Change?
  *
  * Pour le transmettre tel quel, renvoyer 1. Sinon renvoyer 0.
+ * 
+ * Channel = [1..16]
  */
 int onProgramChange(byte channel, byte value) {
    // if (channel == 5 && value == 10) {
@@ -106,16 +110,22 @@ void passthroughData() {
    } while (!isStatusByte(b));
 }
 
-// Envoie un Control Change
+/* Envoie un Control Change
+ *  
+ * Channel = [1..16]
+ */
 void sendControlChange(byte channel, byte ctrl, byte value) {
-   Serial.write(0xB0 | channel);
+   Serial.write(0xB0 | channel-1);
    Serial.write(ctrl);
    Serial.write(value);
 }
 
-// Envoie un Program Change
+/* Envoie un Program Change
+ *  
+ * Channel = [1..16]
+ */
 void sendProgramChange(byte channel, byte value) {
-   Serial.write(0xC0 | channel);
+   Serial.write(0xC0 | channel-1);
    Serial.write(value);
 }
 
@@ -157,7 +167,7 @@ void loop() {
 
       else {
          // Numéro du canal midi
-         byte channel = b & 0x0F;
+         byte channel = (b & 0x0F) + 1;
          switch ((b >> 4) & 0x07) {
             case 3:  // Control change
                do {
