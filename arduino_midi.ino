@@ -9,16 +9,14 @@ void onRealtimeMessage(uint8_t msg);
 void onSystemMessage(uint8_t msg, uint8_t d0, uint8_t d1);
 void onChannelMessage(uint8_t msg, uint8_t channel, uint8_t d0, uint8_t d1);
 
-// Configuration, exécutée une seule fois
 void setup() {
-   // Le protocol midi fonctionne à 31250 bits par seconde
+   // MIDI protocol bitrate
    Serial.begin(31250);
 
-   // On autorise l'utilisation des LEDs sur la carte MIDI
-   pinMode(6,OUTPUT); // Rouge
-   pinMode(7,OUTPUT); // Verte
-
-   pinMode(13,OUTPUT); // LED de l'arduino
+   // LEDs
+   pinMode(6,OUTPUT); // Red
+   pinMode(7,OUTPUT); // Green
+   pinMode(13,OUTPUT); // Arduino's
    digitalWrite(13,HIGH);
 }
 
@@ -35,26 +33,17 @@ void greenLightOff() {
    digitalWrite(7,LOW);
 }
 
-// Lit le prochain octet en entrée
+// Read next byte, sleep in the meantime
 uint8_t readNext() {
-   int b;
-
-   do {
-     // on attend qu'un octet soit disponible
-     while (Serial.available() <= 0) {
-         set_sleep_mode(SLEEP_MODE_IDLE);
-         sleep_enable();
-         digitalWrite(13,LOW);
-         sleep_mode();
-         sleep_disable();
-         digitalWrite(13,HIGH);
-     }
-     b = Serial.read();
+   while (Serial.available() <= 0) {
+      set_sleep_mode(SLEEP_MODE_IDLE);
+      sleep_enable();
+      digitalWrite(13,LOW);
+      sleep_mode();
+      sleep_disable();
+      digitalWrite(13,HIGH);
    }
-   while (b < 0);
-
-   // on le lit et on le renvoie
-   return b;
+   return Serial.read();
 }
 
 int isStatusByte(uint8_t b) {
@@ -69,10 +58,10 @@ int isSystemRealtimeMessage(uint8_t b) {
    return b & 0xF8 == 0xF8;
 }
 
-volatile uint8_t last_written_status = 0x0;
-
 // Write status uint8_t (support running status)
 void writeChannelStatus(uint8_t status) {
+   static uint8_t last_written_status = 0x0;
+
    if (status != last_written_status) {
       Serial.write(status);
       last_written_status = status;
