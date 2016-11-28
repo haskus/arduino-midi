@@ -4,38 +4,17 @@
 
 #define EA7_CHANNEL_STYLE 10
 
-/* Variations:
- * CC 0  30
- * CC 32 29
- * PC EA7_VARIATIONn
- */
-#define EA7_VARIATION1 0
-#define EA7_VARIATION2 1
-#define EA7_VARIATION3 8
-#define EA7_VARIATION4 9
-
-// Define Varation [1-4]
+// Varations [1-4]
 void ea7_set_variation(uint8_t n);
+
+// Endings [1-4]
+void ea7_set_ending(uint8_t n);
+
+// Intro [1-4]
+void ea7_set_intro(uint8_t n);
 
 /*
 Canal 10
-
-Ending:
-   CC 0  30
-   CC 32 29
-   + PC  74  -- ending 1
-     PC  75  -- ending 2
-     PC  72  -- ending 3
-     PC  73  -- ending 4
-
-Intro:
-   activation variation +
-   CC 0  30
-   CC 32 29
-   + PC  66  -- intro 1
-     PC  67  -- intro 2
-     PC  64  -- intro 3
-     PC  65  -- intro 4
 
 Track mute:
    Sur la piste style/drums

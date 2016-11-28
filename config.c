@@ -7,10 +7,12 @@
 // Set to 1 to transfer Sysex as is
 int transferSysEx = 0;
 
-/* Control-change
+
+/*
  * Channel = [1..16]
  * Return 1 to transmit as is, 0 to discard
  */
+
 int onControlChange(uint8_t channel, uint8_t ctrl, uint8_t value) {
    switch (channel) {
       case FR1XB_CHANNEL_BASS:
@@ -21,10 +23,6 @@ int onControlChange(uint8_t channel, uint8_t ctrl, uint8_t value) {
    return 1;
 }
 
-/* Program-change
- * Channel = [1..16]
- * Return 1 to transmit as is, 0 to discard
- */
 int onProgramChange(uint8_t channel, uint8_t value) {
    switch (channel) {
       case FR1XB_CHANNEL_BASS:

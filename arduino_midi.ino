@@ -293,3 +293,9 @@ void onSystemMessage(uint8_t msg, uint8_t d0, uint8_t d1) {
          break;
    }
 }
+
+void setPatch(uint8_t channel, uint8_t bank0, uint8_t bank1, uint8_t patch) {
+   sendControlChange(channel, 0, bank0);
+   sendControlChange(channel, 32, bank1);
+   sendProgramChange(channel, patch);
+}
