@@ -64,6 +64,11 @@ void setPatchset(uint8_t set) {
          );
 }
 
+#define MODE_UPPER 0
+#define MODE_ORCH  1
+#define MODE_ORGAN 2
+uint8_t right_mode = MODE_UPPER;
+
 uint8_t onProgramChange(uint8_t channel, uint8_t value) {
    switch (channel) {
       case FR1XB_CHANNEL_BASS:
@@ -121,41 +126,29 @@ uint8_t onProgramChange(uint8_t channel, uint8_t value) {
             case FR1XB_REG_RIGHT_ORCH_1B:
             case FR1XB_REG_RIGHT_ORCH_1C:
             case FR1XB_REG_RIGHT_ORCH_1D:
-               ea7_set_ending(1);
-               return 0;
             case FR1XB_REG_RIGHT_ORCH_2A:
             case FR1XB_REG_RIGHT_ORCH_2B:
             case FR1XB_REG_RIGHT_ORCH_2C:
             case FR1XB_REG_RIGHT_ORCH_2D:
-               ea7_set_ending(2);
-               return 0;
             case FR1XB_REG_RIGHT_ORCH_3A:
             case FR1XB_REG_RIGHT_ORCH_3B:
             case FR1XB_REG_RIGHT_ORCH_3C:
             case FR1XB_REG_RIGHT_ORCH_3D:
-               ea7_set_ending(3);
-               return 0;
             case FR1XB_REG_RIGHT_ORCH_4A:
             case FR1XB_REG_RIGHT_ORCH_4B:
             case FR1XB_REG_RIGHT_ORCH_4C:
             case FR1XB_REG_RIGHT_ORCH_4D:
-               ea7_set_ending(4);
+               right_mode = MODE_ORCH;
                return 0;
             case FR1XB_LESLY_SLOW1:
             case FR1XB_LESLY_FAST1:
-               ea7_set_intro(1);
-               return 0;
             case FR1XB_LESLY_SLOW2:
             case FR1XB_LESLY_FAST2:
-               ea7_set_intro(2);
-               return 0;
             case FR1XB_LESLY_SLOW3:
             case FR1XB_LESLY_FAST3:
-               ea7_set_intro(3);
-               return 0;
             case FR1XB_LESLY_SLOW4:
             case FR1XB_LESLY_FAST4:
-               ea7_set_intro(4);
+               right_mode = MODE_ORGAN;
                return 0;
          }
    }
@@ -166,9 +159,35 @@ uint8_t onProgramChange(uint8_t channel, uint8_t value) {
 //    return 1;
 // }
 // 
-// uint8_t onNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
-//    return 1;
-// }
+
+uint8_t onNoteOn(uint8_t channel, uint8_t note, uint8_t velocity) {
+   if (channel != 4) {
+      return 1;
+   }
+   else {
+      switch (right_mode) {
+         case MODE_UPPER: return 1;
+         case MODE_ORCH:
+            switch (note) {
+            case 57: ea7_set_ending(1); return 0;
+            case 60: ea7_set_ending(2); return 0;
+            case 63: ea7_set_ending(3); return 0;
+            case 66: ea7_set_ending(4); return 0;
+            default: return 0;
+            }
+         case MODE_ORGAN:
+            switch (note) {
+            case 57: ea7_set_intro(1); return 0;
+            case 60: ea7_set_intro(2); return 0;
+            case 63: ea7_set_intro(3); return 0;
+            case 66: ea7_set_intro(4); return 0;
+            default: return 0;
+            }
+      }
+   }
+   return 1;
+}
+
 // 
 // uint8_t onKeyAfterTouch(uint8_t channel, uint8_t note, uint8_t pressure) {
 //    return 1;

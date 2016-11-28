@@ -2,37 +2,25 @@
 #include "midi.h"
 
 /* Variations [1-4]:
- * CC 0  30
- * CC 32 29
  * PC [0,1,8,9]
  */
 void ea7_set_variation(uint8_t n) {
-   sendControlChange(EA7_CHANNEL_STYLE,0,30);
-   sendControlChange(EA7_CHANNEL_STYLE,32,29);
    uint8_t pc[] = { 0, 1, 8, 9};
    sendProgramChange(EA7_CHANNEL_STYLE, pc[n-1]);
 }
 
 /* Endings [1-4]:
- * CC 0  30
- * CC 32 29
  * PC [74,75,72,73]
  */
 void ea7_set_ending(uint8_t n) {
-   sendControlChange(EA7_CHANNEL_STYLE,0,30);
-   sendControlChange(EA7_CHANNEL_STYLE,32,29);
    uint8_t pc[] = { 74, 75, 72, 73};
    sendProgramChange(EA7_CHANNEL_STYLE, pc[n-1]);
 }
 
 /* Intros [1-4]:
- * CC 0  30
- * CC 32 29
  * PC [66,67,64,65]
  */
 void ea7_set_intro(uint8_t n) {
-   sendControlChange(EA7_CHANNEL_STYLE,0,30);
-   sendControlChange(EA7_CHANNEL_STYLE,32,29);
    uint8_t pc[] = { 66, 67, 64, 65 };
    sendProgramChange(EA7_CHANNEL_STYLE, pc[n-1]);
 }
