@@ -5,9 +5,9 @@
 #include "EA7.h"
 #include "config.h"
 
-void onRealtimeMessage(uint8_t msg);
-void onSystemMessage(uint8_t msg, uint8_t d0, uint8_t d1);
-void onChannelMessage(uint8_t msg, uint8_t channel, uint8_t d0, uint8_t d1);
+uint8_t onRealtimeMessage(uint8_t status);
+void onSystemMessage(uint8_t status, uint8_t d0, uint8_t d1);
+void onChannelMessage(uint8_t status, uint8_t channel, uint8_t d0, uint8_t d1);
 
 void setup() {
    // MIDI protocol bitrate
@@ -46,22 +46,18 @@ uint8_t readNext() {
    return Serial.read();
 }
 
-int isStatusByte(uint8_t b) {
-   return b & 0x80 == 0x80;
-}
+#define isStatusByte(b) ((b & 0x80) == 0x80)
+#define isSystemMessage(b) ((b & 0xF0) == 0xF0)
+#define isSystemRealtimeMessage(b) ((b & 0xF8) == 0xF8)
 
-int isSystemMessage(uint8_t b) {
-   return b & 0xF0 == 0xF0;
-}
+static uint8_t last_written_status = 0x0;
 
-int isSystemRealtimeMessage(uint8_t b) {
-   return b & 0xF8 == 0xF8;
+void resetStatus() {
+   last_written_status = 0x0;
 }
 
 // Write status uint8_t (support running status)
 void writeChannelStatus(uint8_t status) {
-   static uint8_t last_written_status = 0x0;
-
    if (status != last_written_status) {
       Serial.write(status);
       last_written_status = status;
@@ -131,59 +127,67 @@ void loop() {
    do {
       uint8_t b = readNext();
 
-      if (isSystemRealtimeMessage(b)) {
-         onRealtimeMessage(b);
-      }
-      else if (isSystemMessage(b)) {
-         status = b;
-         state = SYSMSG;
-         switch (status & 0x07) {
-            case 0x00: // System exclusive
-               state = SYSEX;
-               // we transfer sysex directly if requested
-               if (transferSysEx)
-                  Serial.write(status);
-               break;
-            case 0x01: // Time code quarter frame
-            case 0x03: // Song select
-               reqdata = 1;
-               break;
-            case 0x02: // Song position pointer
-               reqdata = 2;
-               break;
-            case 0x04: // undefined
-            case 0x05: // undefined
-            case 0x06: // tune request
-            case 0x07: // end of exclusive
-               onSystemMessage(status,data[0],data[1]);
-               state = INIT;
-               break;
-            //case 0x08: // timing clock
-            //case 0x09: // undefined
-            //case 0x0A: // start
-            //case 0x0B: // continue
-            //case 0x0C: // stop
-            //case 0x0D: // undefined
-            //case 0x0E: // active sensing
-            //case 0x0F: // reset
+      if (isStatusByte(b)) {
+         if (isSystemMessage(b)) {
+            status = b;
+            state = SYSMSG;
+            switch (status & 0x0F) {
+               case 0x00: // System exclusive
+                  state = SYSEX;
+                  // we transfer sysex directly if requested
+                  if (transferSysEx) {
+                     resetStatus();
+                     Serial.write(status);
+                  }
+                  break;
+               case 0x01: // Time code quarter frame
+               case 0x03: // Song select
+                  reqdata = 1;
+                  break;
+               case 0x02: // Song position pointer
+                  reqdata = 2;
+                  break;
+               case 0x04: // undefined
+               case 0x05: // undefined
+               case 0x06: // tune request
+               case 0x07: // end of exclusive
+                  onSystemMessage(status,data[0],data[1]);
+                  state = INIT;
+                  cdata = 0;
+                  break;
+               case 0x08: // timing clock
+               case 0x09: // undefined
+               case 0x0A: // start
+               case 0x0B: // continue
+               case 0x0C: // stop
+               case 0x0D: // undefined
+               case 0x0E: // active sensing
+               case 0x0F: // reset
+                  if (onRealtimeMessage(status)) {
+                     sendRealtimeMessage(status);
+                  }
+                  state = INIT;
+                  break;
+            }
          }
-      }
-      else if (isStatusByte(b)) { // channel message
-         status = b;
-         state = CHANMSG;
-         channel = status & 0x0F;
-         switch ((status >> 4) & 0x07) {
-            case 0:  // Note Off
-            case 1:  // Note On
-            case 2:  // Polyphonic key pressure (aftertouch)
-            case 3:  // Control change
-            case 6:  // Pitch bend change
-               reqdata = 2;
-               break;
-            case 4:  // Program change
-            case 5:  // Channel Pressure (after-touch)
-               reqdata = 1;
-               break;
+         else { // channel message
+            status = b;
+            state = CHANMSG;
+            channel = status & 0x0F;
+            cdata = 0;
+            switch ((status >> 4) & 0x07) {
+               case 0:  // Note Off
+               case 1:  // Note On
+               case 2:  // Polyphonic key pressure (aftertouch)
+               case 3:  // Control change
+               case 6:  // Pitch bend change
+                  reqdata = 2;
+                  break;
+               case 4:  // Program change
+               case 5:  // Channel Pressure (after-touch)
+                  reqdata = 1;
+                  break;
+            }
          }
       }
       else { // data
@@ -200,13 +204,14 @@ void loop() {
                if (cdata == reqdata) {
                   onSystemMessage(status,data[0],data[1]);
                   state = INIT;
+                  cdata = 0;
                }
                break;
             case CHANMSG:
                data[cdata] = b;
                cdata += 1;
                if (cdata == reqdata) {
-                  onChannelMessage((status >> 4) & 0x07,channel+1,data[0],data[1]);
+                  onChannelMessage(status,channel+1,data[0],data[1]);
                   // running status: we only reset the data counter
                   cdata = 0;
                }
@@ -217,60 +222,65 @@ void loop() {
 
 }
 
-void onRealtimeMessage(uint8_t msg) {
+uint8_t onRealtimeMessage(uint8_t status) {
    // we transmit realtime messages directly
-   Serial.write(msg);
+   return 1;
 }
 
-void onChannelMessage(uint8_t msg, uint8_t channel, uint8_t d0, uint8_t d1) {
-   switch (msg) {
+void sendRealtimeMessage(uint8_t status) {
+   Serial.write(status);
+   resetStatus();
+}
+
+void onChannelMessage(uint8_t status, uint8_t channel, uint8_t d0, uint8_t d1) {
+   switch ((status >> 4) & 0x07) {
       case 0:  // Note Off
-         if (onNoteOff(channel,d0,d1)) {
+         if (onNoteOff == 0 || onNoteOff(channel,d0,d1) != 0) {
             sendNoteOff(channel,d0,d1);
          }
          break;
       case 1:  // Note On
-         if (onNoteOn(channel,d0,d1)) {
+         if (onNoteOn == 0 || onNoteOn(channel,d0,d1) != 0) {
             sendNoteOn(channel,d0,d1);
          }
          break;
       case 2:  // Polyphonic key pressure (aftertouch)
-         if (onKeyAfterTouch(channel,d0,d1)) {
+         if (onKeyAfterTouch == 0 || onKeyAfterTouch(channel,d0,d1)) {
             sendKeyAfterTouch(channel,d0,d1);
          }
          break;
       case 3: // control change
-         if (onControlChange(channel,d0,d1)) {
+         if (onControlChange == 0 || onControlChange(channel,d0,d1)) {
             sendControlChange(channel,d0,d1);
          }
          break;
       case 4: // program change
-         if (onProgramChange(channel,d0)) {
+         if (onProgramChange == 0 || onProgramChange(channel,d0)) {
             sendProgramChange(channel,d0);
          }
          break;
       case 5:  // Channel Pressure (after-touch)
-         if (onChannelAfterTouch(channel,d0)) {
+         if (onChannelAfterTouch == 0 || onChannelAfterTouch(channel,d0)) {
             sendChannelAfterTouch(channel,d0);
          }
          break;
       case 6:  // Pitch bend change
-         if (onPitchBend(channel,d0 | (d1 << 8))) {
+         if (onPitchBend == 0 || onPitchBend(channel,d0 | (d1 << 8))) {
             sendPitchBend(channel,d0 | (d1 << 8));
          }
          break;
    }
 }
 
-void onSystemMessage(uint8_t msg, uint8_t d0, uint8_t d1) {
-   switch (msg) {
+void onSystemMessage(uint8_t status, uint8_t d0, uint8_t d1) {
+   switch (status) {
       case 0xF1:  // MIDI Time Code Quarter Frame
       case 0xF3:  // Song select
-         Serial.write(msg);
+         Serial.write(status);
          Serial.write(d0);
          break;
       case 0xF2:  // Song position pointer
-         Serial.write(msg);
+         Serial.write(status);
          Serial.write(d0);
          Serial.write(d1);
          break;
@@ -278,9 +288,10 @@ void onSystemMessage(uint8_t msg, uint8_t d0, uint8_t d1) {
       case 0xF5:  // Undefined
       case 0xF6:  // Tune request
       case 0xF7:  // End of exclusive
-         Serial.write(msg);
+         Serial.write(status);
          break;
    }
+   resetStatus();
 }
 
 void setPatch(uint8_t channel, uint8_t bank0, uint8_t bank1, uint8_t patch) {
@@ -288,3 +299,15 @@ void setPatch(uint8_t channel, uint8_t bank0, uint8_t bank1, uint8_t patch) {
    sendControlChange(channel, 32, bank1);
    sendProgramChange(channel, patch);
 }
+
+void midiStart() {
+   sendRealtimeMessage(0x0A);
+};
+
+void midiContinue() {
+   sendRealtimeMessage(0x0B);
+};
+
+void midiStop() {
+   sendRealtimeMessage(0x0C);
+};

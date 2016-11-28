@@ -3,6 +3,7 @@
 #include "midi.h"
 
 #define EA7_CHANNEL_STYLE 10
+#define EA7_CHANNEL_UPPER 1
 
 // Varations [1-4]
 void ea7_set_variation(uint8_t n);
