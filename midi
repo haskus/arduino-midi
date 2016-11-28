@@ -1,0 +1,193 @@
+Accordeon (Fr1xb)
+=================
+
+Soufflet
+--------
+Channel 1:
+   CC11 + valeure -> soufflet
+
+Main droite:
+------------
+Registre 1a
+   CC0
+   CC32
+   PC0 (1b -> 1, 1c -> 2, 1d -> 3)
+   CC7
+   CC10
+   CC91
+   CC93
+   CC100
+   CC101
+   CC6
+   CC38
+   CC100
+   CC101
+
+Reg   PC
+1a    0
+1b    1
+1c    2
+1d    3
+2a    7
+2b    4
+2c    5
+2d    6
+3a    11
+3b    8
+3c    9
+3d    10
+4a    13
+4b    12
+
+Lesly orgue: PC
+Rapide: 36, 37, 38, 39
+Lent  : 26, 27, 28, 29
+
+Registres main gauche:
+----------------------
+CC0 CC32 +
+   Reg   PC
+   1a    4
+   1b    2
+   2a    3
+   2b    5
+   3a    6
+   3b    1
+   3c    0
++
+   CC7
+   CC10
+   CC91
+   CC93
+
+sur les canaux basse et accords main gauche
+
+Registres orchestra main droite:
+--------------------------------
+Reg   PC
+1a    0
+1b    1
+1c    2
+1d    3
+2a    4
+2b    5
+2c    6
+2d    7
+3a    8
+3b    9
+3c    10
+3d    11
+4a    12
+4b    13
+4c    14
+4d    15
+
+
+
+
+Pédalier FCB1010:
+================
+
+Banque 00:
+   Touche   PC
+   1        64
+   2        65
+   3        66
+   4        67
+   5        68
+   6        69
+   7        70
+   8        71
+   9        72
+   10       73
+Banque 01:
+   1..10    74..83
+Banque 02:
+   1..10    84..93
+Banque 03:
+   1        94
+   2        95
+   3        96
+   4        97
+   5        98
+   6        99
+   7        36
+   8        37
+   9        38
+   10       39
+Banque 04:
+   1        40
+   
+
+E-A7:
+-----
+
+Canal 10
+
+Variations:
+   CC 0  30
+   CC 32 29
+   + PC  0  -- variation 1
+     PC  1  -- variation 2
+     PC  8  -- variation 3
+     PC  9  -- variation 4
+
+Ending:
+   CC 0  30
+   CC 32 29
+   + PC  74  -- ending 1
+     PC  75  -- ending 2
+     PC  72  -- ending 3
+     PC  73  -- ending 4
+
+Intro:
+   activation variation +
+   CC 0  30
+   CC 32 29
+   + PC  66  -- intro 1
+     PC  67  -- intro 2
+     PC  64  -- intro 3
+     PC  65  -- intro 4
+
+Track mute:
+   Sur la piste style/drums
+   Pitch bend 0
+   Pitch bend -59
+   CC 10 64
+   CC 11 94
+   CC 91 85
+   CC 93 00
+
+Sons:
+   Accordeon fr:
+      CC 0  64
+      CC 32 4
+      PC 21
+   BlowAltoSib
+      CC 0  50
+      CC 32 4
+      PC 65
+   PortaLead
+      CC 0  15
+      CC 32 5
+      PC 81
+   Strings
+      CC 0  16
+      CC 32 4
+      PC 48
+   Vibraphone
+      CC 0  0
+      CC 32 4
+      PC 11
+   Meloharm
+      CC 0  1
+      CC 32 4
+      PC 22
+   Piano+string
+      CC 0  24
+      CC 32 4
+      PC 0
+   Piano+choir
+      CC 0  26
+      CC 32 4
+      PC 0
