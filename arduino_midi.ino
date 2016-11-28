@@ -112,13 +112,14 @@ void sendPitchBend(uint8_t channel, uint16_t bend) {
    Serial.write(bend >> 8);
 }
 
-typedef enum {INIT, SYSEX, SYSMSG, CHANMSG} State;
+typedef enum {INIT, RUNNING, SYSEX, SYSMSG, CHANMSG} State;
 
 // Exécutée en boucle
 void loop() {
 
    State state = INIT;
    uint8_t status;
+   uint8_t last_channel_status;
    uint8_t channel;
    uint8_t data[2];
    uint8_t reqdata = 0;
@@ -152,7 +153,7 @@ void loop() {
                case 0x06: // tune request
                case 0x07: // end of exclusive
                   onSystemMessage(status,data[0],data[1]);
-                  state = INIT;
+                  state = RUNNING;
                   cdata = 0;
                   break;
                case 0x08: // timing clock
@@ -166,12 +167,13 @@ void loop() {
                   if (onRealtimeMessage(status)) {
                      sendRealtimeMessage(status);
                   }
-                  state = INIT;
+                  state = RUNNING;
                   break;
             }
          }
          else { // channel message
             status = b;
+            last_channel_status = b;
             state = CHANMSG;
             channel = status & 0x0F;
             cdata = 0;
@@ -203,10 +205,12 @@ void loop() {
                cdata += 1;
                if (cdata == reqdata) {
                   onSystemMessage(status,data[0],data[1]);
-                  state = INIT;
+                  state = RUNNING;
                   cdata = 0;
                }
                break;
+            case RUNNING:
+               status = last_channel_status;
             case CHANMSG:
                data[cdata] = b;
                cdata += 1;

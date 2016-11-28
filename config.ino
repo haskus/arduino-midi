@@ -14,14 +14,10 @@ uint8_t transferSysEx = 0;
  */
 
 uint8_t onControlChange(uint8_t channel, uint8_t ctrl, uint8_t value) {
-   switch (channel) {
-      case FR1XB_CHANNEL_BASS:
-      case FR1XB_CHANNEL_CHORD:
-         if (ctrl == 0 || ctrl == 32) {
-            return 0;
-         }
-         break;
+   if (ctrl == 0 || ctrl == 32) {
+      return 0;
    }
+
    return 1;
 }
 
@@ -163,7 +159,7 @@ uint8_t onProgramChange(uint8_t channel, uint8_t value) {
                return 0;
          }
    }
-   return 1;
+   return 0;
 }
 
 // uint8_t onNoteOff(uint8_t channel, uint8_t note, uint8_t velocity) {
