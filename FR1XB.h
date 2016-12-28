@@ -1,4 +1,4 @@
-/* Roland FR1XB Accordeon */
+/* Roland FR-1xb V-Accordion */
 
 #ifndef FR1XB_H
 #define FR1XB_H

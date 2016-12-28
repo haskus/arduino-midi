@@ -74,7 +74,7 @@ void sendControlChange(uint8_t channel, uint8_t ctrl, uint8_t value) {
    Serial.write(value);
 }
 
-/* Envoie un Program Change
+/* Send a Program Change
  *  
  * Channel = [1..16]
  */
@@ -114,7 +114,6 @@ void sendPitchBend(uint8_t channel, uint16_t bend) {
 
 typedef enum {INIT, RUNNING, SYSEX, SYSMSG, CHANMSG} State;
 
-// Exécutée en boucle
 void loop() {
 
    State state = INIT;

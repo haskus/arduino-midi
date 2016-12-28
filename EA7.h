@@ -15,18 +15,7 @@ void ea7_set_ending(uint8_t n);
 void ea7_set_intro(uint8_t n);
 
 /*
-Canal 10
-
-Track mute:
-   Sur la piste style/drums
-   Pitch bend 0
-   Pitch bend -59
-   CC 10 64
-   CC 11 94
-   CC 91 85
-   CC 93 00
-
-Sons:
+Patchs:
    Accordeon fr:
       CC 0  64
       CC 32 4
